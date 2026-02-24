@@ -22,20 +22,20 @@ export const Track = forwardRef<TrackHitApi, TrackProps>(({ x, z, width, color }
 
   useImperativeHandle(ref, () => ({
     handleHit: (impactZ: number) => {
-      setHitIntensity(6) // Point light intensity peak
-      setHitZ(impactZ - z) // Store relative Z position
+      setHitIntensity(1.5) // Peak intensity for bloom
+      setHitZ(impactZ - z)
     }
   }))
 
   useFrame((_state, delta) => {
     if (hitIntensity > 0) {
-      setHitIntensity(prev => Math.max(0, prev - delta * 6)) // Faster fade for punchy feel
+      setHitIntensity(prev => Math.max(0, prev - delta * 1.5)) 
     }
   })
 
   return (
     <group position={[x, -1, z]} rotation={[0.15, 0, 0]}>
-      {/* Piano Key Body */}
+      {/* 1. Main Key Body - Standard material with high emissive boost */}
       <RigidBody 
         type="fixed" 
         restitution={0} 
@@ -48,53 +48,29 @@ export const Track = forwardRef<TrackHitApi, TrackProps>(({ x, z, width, color }
           <meshStandardMaterial
             color={color}
             emissive={color}
-            emissiveIntensity={0.8} // Constant base glow
-            transparent={true}
-            opacity={0.85} // Semi-transparent "frosted" look
+            emissiveIntensity={0.1 + hitIntensity * 1.5} // Further reduced
             toneMapped={false}
+            transparent={true}
+            opacity={0.9}
             metalness={0.2}
             roughness={0.1}
           />
         </mesh>
       </RigidBody>
 
-      {/* Internal "Crystal" Glow Effect */}
+      {/* 2. Visual Effects Component */}
       {hitIntensity > 0 && (
-        <group position={[0, 0, hitZ]}>
-          {/* Main Internal Bulb - placed inside the key */}
+        <>
+          {/* Internal point light to light up the ball and the track surface near the hit */}
           <pointLight 
-            intensity={hitIntensity * 4} 
-            distance={15} // Increased distance to travel along the key
+            position={[0, 0.2, hitZ]}
+            intensity={hitIntensity * 3} // Further reduced
+            distance={3}
             decay={2}
-            color={color} 
+            color={color}
           />
-          
-          {/* Longitudinal Beam Effect: Simulated by stretching a mesh inside */}
-          <mesh position={[0, 0, 0]}>
-            <boxGeometry args={[width * 0.8, 0.2, 3]} />
-            <meshStandardMaterial 
-              color={color} 
-              emissive={color} 
-              emissiveIntensity={hitIntensity * 2} 
-              transparent 
-              opacity={hitIntensity / 10} 
-              toneMapped={false}
-            />
-          </mesh>
-        </group>
+        </>
       )}
-      
-      {/* Label at the front commented out to avoid font errors */}
-      {/* <Text
-        position={[0, 0.3, 4.5]}
-        rotation={[-Math.PI / 2, 0, 0]}
-        fontSize={0.5}
-        color="#ffffff"
-        anchorX="center"
-        anchorY="middle"
-      >
-        {note}
-      </Text> */}
     </group>
   )
 })
