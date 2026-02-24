@@ -14,7 +14,7 @@ interface MarbleProps {
 }
 
 export function Marble({ id, x, z, note, duration, color }: MarbleProps) {
-  const synthRef = useRef<Tone.Synth | null>(null)
+  const synthRef = useRef<Tone.PolySynth | null>(null)
   const rbRef = useRef<RapierRigidBody>(null)
   const playedCountRef = useRef(0)
   const [exploded, setExploded] = useState(false)
@@ -27,7 +27,7 @@ export function Marble({ id, x, z, note, duration, color }: MarbleProps) {
       }).toDestination()
       synthRef.current.volume.value = -3 
     }
-    return synthRef.current
+    return synthRef.current!
   }
 
   useEffect(() => {
@@ -47,7 +47,7 @@ export function Marble({ id, x, z, note, duration, color }: MarbleProps) {
     }
   }, [id])
 
-  const handleCollision = async (event: any) => {
+  const handleCollision = async () => {
     if (playedCountRef.current < 1 && !exploded) {
       const { playbackStartTime, effects } = useGameStore.getState()
       

@@ -1,5 +1,5 @@
 import { RigidBody } from '@react-three/rapier'
-import { Text } from '@react-three/drei'
+
 
 interface TrackProps {
   id: string
@@ -10,7 +10,7 @@ interface TrackProps {
   color: string
 }
 
-export function Track({ x, z, width, note, color }: TrackProps) {
+export function Track({ x, z, width, color }: TrackProps) {
   return (
     <group position={[x, -1, z]} rotation={[0.15, 0, 0]}>
       {/* Piano Key Body */}

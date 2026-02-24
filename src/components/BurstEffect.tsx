@@ -32,7 +32,7 @@ export function BurstEffect({ color }: BurstEffectProps) {
 
   const dummy = useMemo(() => new THREE.Object3D(), [])
 
-  useFrame((state, delta) => {
+  useFrame((_state, delta) => {
     if (!meshRef.current) return
 
     const timeScale = Math.min(delta * 60, 2) // Cap timeScale

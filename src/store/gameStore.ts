@@ -10,7 +10,7 @@ interface GameState {
   initAudio: () => void
   togglePlay: () => void
   addMarble: (x: number, z: number, duration?: string) => void
-  addTrack: (x: number, z: number, width: number, note: string) => void
+  addTrack: (x: number, z: number, width: number, note: string, color?: string) => void
   removeMarble: (id: string) => void
   playSequence: (sequence: string) => void
   playbackStartTime: number
@@ -80,10 +80,12 @@ export const useGameStore = create<GameState>((set, get) => ({
     }))
   },
 
-  addTrack: (x: number, z: number, width: number, note: string) => {
+  addTrack: (x: number, z: number, width: number, note: string, color?: string) => {
     const id = `track-${Date.now()}`
+    const noteIndex = NOTES.indexOf(note)
+    const finalColor = color || (noteIndex !== -1 ? COLORS[noteIndex] : '#ffffff')
     set((state) => ({
-      tracks: [...state.tracks, { id, x, z, width, note }]
+      tracks: [...state.tracks, { id, x, z, width, note, color: finalColor }]
     }))
   },
 
@@ -145,10 +147,8 @@ export const useGameStore = create<GameState>((set, get) => ({
         const tracks = get().tracks
         if (noteIndex >= 0 && noteIndex < tracks.length) {
           const track = tracks[noteIndex]
-          const currentBeatStart = cumulativeDelay
           
           setTimeout(() => {
-            const actualSpawnOffset = Date.now() - now
             console.log(`[Spawn] Note ${tokenValue} (${track.note}) dropping as ${notation}`)
             get().addMarble(track.x, -1, notation)
           }, cumulativeDelay)

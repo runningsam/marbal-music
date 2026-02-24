@@ -1,7 +1,5 @@
-import { useRef } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
-import { RigidBody, CuboidCollider } from '@react-three/rapier'
-import { Stars, Grid, Float, Text } from '@react-three/drei'
+import { Stars } from '@react-three/drei'
 import * as THREE from 'three'
 import { useGameStore } from '../store/gameStore'
 import { Marble } from './Marble'
@@ -12,10 +10,9 @@ export function Scene() {
   const addMarble = useGameStore((state) => state.addMarble)
   const marbles = useGameStore((state) => state.marbles)
   const tracks = useGameStore((state) => state.tracks)
-  const isPlaying = useGameStore((state) => state.isPlaying)
 
-  useFrame((state) => {
-    const t = state.clock.getElapsedTime()
+
+  useFrame(() => {
     // Better angle for keyboard (pushed back for 17 keys)
     camera.position.lerp(new THREE.Vector3(0, 12, 16), 0.05)
     camera.lookAt(0, -3, 0)
