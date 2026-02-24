@@ -13,6 +13,8 @@ interface GameState {
   addTrack: (x: number, z: number, width: number, note: string, color?: string) => void
   removeMarble: (id: string) => void
   playSequence: (sequence: string) => void
+  stopSequence: () => void
+  wasPlayingBeforeHidden: boolean
   playbackStartTime: number
   bpm: number
   setBpm: (bpm: number) => void
@@ -47,6 +49,7 @@ const MARBLE_PALETTE = [
 export const useGameStore = create<GameState>((set, get) => ({
   isPlaying: false,
   audioInitialized: false,
+  wasPlayingBeforeHidden: false,
   marbles: [],
   tracks: NOTES.map((note, i) => ({
     id: `track-${note}-${i}`,
@@ -64,7 +67,14 @@ export const useGameStore = create<GameState>((set, get) => ({
   },
 
   togglePlay: () => {
-    set((state) => ({ isPlaying: !state.isPlaying }))
+    const isPlaying = get().isPlaying
+    if (isPlaying) {
+      Tone.Transport.pause()
+    } else {
+      Tone.Transport.start()
+    }
+    // If manually toggling, we clear the auto-resume flag
+    set({ isPlaying: !isPlaying, wasPlayingBeforeHidden: false })
   },
 
   addMarble: (x: number, z: number, duration: string = '4n') => {
@@ -99,7 +109,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   bpm: 120,
 
   setBpm: (bpm: number) => {
-    Tone.Transport.bpm.value = bpm
+    Tone.Transport.bpm.rampTo(bpm, 0.1)
     set({ bpm })
   },
 
@@ -116,22 +126,29 @@ export const useGameStore = create<GameState>((set, get) => ({
     }))
   },
 
-  playSequence: (sequence: string) => {
-    const tokens = sequence.split(/\s+/)
-    let cumulativeDelay = 0
-    const now = Date.now()
-    set({ playbackStartTime: now })
+  stopSequence: () => {
+    Tone.Transport.stop()
+    Tone.Transport.cancel()
+    set({ isPlaying: false })
+  },
 
-    console.log(`[Sequence] Starting playback. Format: JIANPU (+1, 1, -1, 0:rest)`)
+  playSequence: (sequence: string) => {
+    // Clear previous sequence
+    Tone.Transport.stop()
+    Tone.Transport.cancel()
+
+    const tokens = sequence.split(/\s+/)
+    let currentTime = 0
+    
+    console.log(`[Sequence] Scheduling with Tone.Transport. BPM: ${get().bpm}`)
 
     tokens.forEach((token) => {
       const [tokenValue, notation = '4n'] = token.split(':')
-      const durationMs = Tone.Time(notation).toMilliseconds()
+      const duration = Tone.Time(notation).toSeconds()
       
-      // REST: 0 or -
       if (tokenValue !== '0' && tokenValue !== '-') {
         let noteIndex = -1
-        let offset = 7 // Default Middle (index 7 is C4)
+        let offset = 7 // Default Middle
 
         if (tokenValue.startsWith('+')) {
           offset = 14
@@ -140,7 +157,6 @@ export const useGameStore = create<GameState>((set, get) => ({
           offset = 0
           noteIndex = offset + (parseInt(tokenValue.substring(1)) - 1)
         } else {
-          // Regular middle notes
           noteIndex = offset + (parseInt(tokenValue) - 1)
         }
 
@@ -148,16 +164,21 @@ export const useGameStore = create<GameState>((set, get) => ({
         if (noteIndex >= 0 && noteIndex < tracks.length) {
           const track = tracks[noteIndex]
           
-          setTimeout(() => {
-            console.log(`[Spawn] Note ${tokenValue} (${track.note}) dropping as ${notation}`)
-            get().addMarble(track.x, -1, notation)
-          }, cumulativeDelay)
+          // Use Tone.Transport.schedule for high precision
+          Tone.Transport.schedule((time) => {
+            // We use Tone.Draw to sync with React/Three state updates efficiently
+            Tone.Draw.schedule(() => {
+              get().addMarble(track.x, -1, notation)
+            }, time)
+          }, currentTime)
         }
       }
       
-      cumulativeDelay += durationMs
+      currentTime += duration
     })
 
-    console.log(`[Sequence] Total duration: ${cumulativeDelay}ms`)
+    Tone.Transport.start()
+    set({ isPlaying: true, playbackStartTime: Date.now() })
+    console.log(`[Sequence] Total duration: ${currentTime.toFixed(2)}s`)
   }
 }))
