@@ -2,6 +2,7 @@ import { useFrame, useThree } from '@react-three/fiber'
 import { Stars } from '@react-three/drei'
 import * as THREE from 'three'
 import { useEffect, useMemo } from 'react'
+import { Bloom, EffectComposer } from '@react-three/postprocessing'
 import { useGameStore } from '../store/gameStore'
 import { Marble } from './Marble'
 import { Track, TrackHitApi } from './Track'
@@ -91,6 +92,15 @@ export function Scene() {
           color={marble.color} 
         />
       ))}
+
+      <EffectComposer>
+        <Bloom 
+          luminanceThreshold={1.0}
+          mipmapBlur
+          intensity={1.2}
+          radius={0.3}
+        />
+      </EffectComposer>
     </>
   )
 }

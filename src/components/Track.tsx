@@ -22,7 +22,7 @@ export const Track = forwardRef<TrackHitApi, TrackProps>(({ x, z, width, color }
 
   useImperativeHandle(ref, () => ({
     handleHit: () => {
-      setHitIntensity(2.5) // Flash intensity
+      setHitIntensity(4) // Lower peak to preserve color saturation
     }
   }))
 
@@ -47,7 +47,8 @@ export const Track = forwardRef<TrackHitApi, TrackProps>(({ x, z, width, color }
           <meshStandardMaterial
             color={color}
             emissive={color}
-            emissiveIntensity={0.2 + hitIntensity}
+            emissiveIntensity={0.5 + hitIntensity}
+            toneMapped={false} // This is key to vibrant colors in post-processing
             metalness={0.8}
             roughness={0.2}
           />
