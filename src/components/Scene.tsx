@@ -21,8 +21,7 @@ export function Scene() {
   const handleClick = (event: any) => {
     event.stopPropagation()
     const point = event.point
-    // Always drop further forward on the track
-    addMarble(point.x, -1)
+    addMarble(point.x, point.z)
   }
 
   return (
@@ -38,8 +37,13 @@ export function Scene() {
         intensity={1.2}
       />
       
-      {/* Invisible Click Plane */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -2, 0]} onClick={handleClick} visible={false}>
+      {/* Invisible Click Plane - Aligned with the track surface (y=-0.8, rotated 0.15) */}
+      <mesh 
+        rotation={[-Math.PI / 2 + 0.15, 0, 0]} 
+        position={[0, -0.8, 0]} 
+        onClick={handleClick} 
+        visible={false}
+      >
         <planeGeometry args={[100, 100]} />
       </mesh>
       
