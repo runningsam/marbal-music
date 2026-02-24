@@ -1,6 +1,26 @@
 import { useState } from 'react'
 import { useGameStore } from '../store/gameStore'
 
+const Logo = () => (
+  <svg width="48" height="48" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ filter: 'drop-shadow(0 0 12px rgba(74, 158, 255, 0.5))' }}>
+    <defs>
+      <linearGradient id="marbleGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stopColor="#4a9eff" />
+        <stop offset="100%" stopColor="#00ffcc" />
+      </linearGradient>
+      <radialGradient id="innerGlow" cx="30%" cy="30%" r="70%">
+        <stop offset="0%" stopColor="white" stopOpacity="0.4" />
+        <stop offset="100%" stopColor="white" stopOpacity="0" />
+      </radialGradient>
+    </defs>
+    <circle cx="50" cy="50" r="45" fill="url(#marbleGrad)" fillOpacity="0.15" stroke="url(#marbleGrad)" strokeWidth="1.5" />
+    <circle cx="50" cy="50" r="35" fill="url(#marbleGrad)" />
+    <circle cx="50" cy="50" r="35" fill="url(#innerGlow)" />
+    <path d="M30 50C30 50 35 40 40 40C45 40 50 60 55 60C60 60 65 50 65 50" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" opacity="0.8" />
+    <path d="M35 55C35 55 38 48 42 48C46 48 50 62 54 62C58 62 61 55 61 55" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" opacity="0.4" />
+  </svg>
+)
+
 export function UI() {
   const audioInitialized = useGameStore((state) => state.audioInitialized)
   const isPlaying = useGameStore((state) => state.isPlaying)
@@ -31,30 +51,38 @@ export function UI() {
         justifyContent: 'space-between',
         alignItems: 'flex-start'
       }}>
-        <div style={{ animation: 'slideDown 0.8s cubic-bezier(0.16, 1, 0.3, 1)' }}>
-          <h1 style={{ 
-            fontSize: '3.5rem', 
-            fontWeight: 700,
-            lineHeight: 1,
-            margin: 0,
-            background: 'linear-gradient(135deg, #fff 0%, #4a9eff 100%)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            letterSpacing: '-0.02em',
-            textTransform: 'uppercase'
-          }}>
-            Marble
-          </h1>
-          <h2 style={{
-            fontSize: '1rem',
-            fontWeight: 200,
-            letterSpacing: '0.4em',
-            marginTop: '4px',
-            opacity: 0.5,
-            textTransform: 'uppercase'
-          }}>
-            Audio Odyssey
-          </h2>
+        <div style={{ 
+          animation: 'slideDown 0.8s cubic-bezier(0.16, 1, 0.3, 1)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '24px'
+        }}>
+          <Logo />
+          <div>
+            <h1 style={{ 
+              fontSize: '3.5rem', 
+              fontWeight: 700,
+              lineHeight: 1,
+              margin: 0,
+              background: 'linear-gradient(135deg, #fff 0%, #4a9eff 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              letterSpacing: '-0.02em',
+              textTransform: 'uppercase'
+            }}>
+              Marble
+            </h1>
+            <h2 style={{
+              fontSize: '1rem',
+              fontWeight: 200,
+              letterSpacing: '0.4em',
+              marginTop: '4px',
+              opacity: 0.5,
+              textTransform: 'uppercase'
+            }}>
+              Audio Odyssey
+            </h2>
+          </div>
         </div>
 
         <div style={{
