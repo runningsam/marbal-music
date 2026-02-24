@@ -54,7 +54,7 @@ export function Marble({ id, x, z, note, duration, color }: MarbleProps) {
       // Find the track by X position to trigger flash
       const track = tracks.find(t => Math.abs(t.x - x) < 0.1)
       if (track) {
-        const hitEvent = new CustomEvent('track-hit', { detail: { trackId: track.id } })
+        const hitEvent = new CustomEvent('track-hit', { detail: { trackId: track.id, z } })
         window.dispatchEvent(hitEvent)
       }
 

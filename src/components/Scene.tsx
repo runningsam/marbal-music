@@ -23,10 +23,10 @@ export function Scene() {
 
   useEffect(() => {
     const handleTrackHit = (e: any) => {
-      const { trackId } = e.detail
+      const { trackId, z: impactZ } = e.detail
       const trackRef = trackRefs.get(trackId)
       if (trackRef?.current) {
-        trackRef.current.handleHit()
+        trackRef.current.handleHit(impactZ)
       }
     }
 
