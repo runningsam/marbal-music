@@ -27,6 +27,8 @@ export function UI() {
   const bpm = useGameStore((state) => state.bpm)
   const setBpm = useGameStore((state) => state.setBpm)
   const playSequence = useGameStore((state) => state.playSequence)
+  const explosiveMarbles = useGameStore((state) => state.effects.explosiveMarbles)
+  const toggleExplosiveMarbles = useGameStore((state) => state.toggleExplosiveMarbles)
   
   const [sequence, setSequence] = useState('3:4n 3:4n 4:4n 5:4n 5:4n 4:4n 3:4n 2:4n 1:4n 1:4n 2:4n 3:4n 3:4n. 2:8n 2:2n')
   const [showSettings, setShowSettings] = useState(false)
@@ -211,10 +213,50 @@ export function UI() {
                 style={{
                   width: '100%',
                   accentColor: '#4a9eff',
-                  cursor: 'pointer'
+                  cursor: 'pointer',
+                  marginBottom: '20px'
                 }}
               />
+
+              <div 
+                onClick={() => toggleExplosiveMarbles()}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: '12px 16px',
+                  background: 'rgba(255, 255, 255, 0.03)',
+                  borderRadius: '12px',
+                  border: '1px solid rgba(255, 255, 255, 0.05)',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease'
+                }}
+              >
+                <label style={{ fontSize: '0.75rem', opacity: 0.8, cursor: 'pointer' }}>Explosive Marbles</label>
+                <div style={{
+                  width: '40px',
+                  height: '20px',
+                  background: explosiveMarbles ? '#4a9eff' : 'rgba(255, 255, 255, 0.1)',
+                  borderRadius: '20px',
+                  position: 'relative',
+                  transition: 'all 0.3s ease'
+                }}>
+                  <div style={{
+                    position: 'absolute',
+                    top: '2px',
+                    left: explosiveMarbles ? '22px' : '2px',
+                    width: '16px',
+                    height: '16px',
+                    background: '#fff',
+                    borderRadius: '50%',
+                    transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                  }} />
+                </div>
+              </div>
+
             </div>
+
 
             <button
               onClick={() => {

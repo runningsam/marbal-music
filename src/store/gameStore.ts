@@ -16,7 +16,14 @@ interface GameState {
   playbackStartTime: number
   bpm: number
   setBpm: (bpm: number) => void
+  
+  // Effects Settings
+  effects: {
+    explosiveMarbles: boolean
+  }
+  toggleExplosiveMarbles: () => void
 }
+
 
 const NOTES = [
   'C3', 'D3', 'E3', 'F3', 'G3', 'A3', 'B3', 
@@ -92,6 +99,19 @@ export const useGameStore = create<GameState>((set, get) => ({
   setBpm: (bpm: number) => {
     Tone.Transport.bpm.value = bpm
     set({ bpm })
+  },
+
+  effects: {
+    explosiveMarbles: true
+  },
+
+  toggleExplosiveMarbles: () => {
+    set((state) => ({
+      effects: {
+        ...state.effects,
+        explosiveMarbles: !state.effects.explosiveMarbles
+      }
+    }))
   },
 
   playSequence: (sequence: string) => {

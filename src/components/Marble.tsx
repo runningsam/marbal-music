@@ -1,7 +1,8 @@
-import { useRef, useEffect } from 'react'
+import { useRef, useEffect, useState } from 'react'
 import { RigidBody, RapierRigidBody } from '@react-three/rapier'
 import * as Tone from 'tone'
 import { useGameStore } from '../store/gameStore'
+import { BurstEffect } from './BurstEffect'
 
 interface MarbleProps {
   id: string
@@ -16,6 +17,7 @@ export function Marble({ id, x, z, note, duration, color }: MarbleProps) {
   const synthRef = useRef<Tone.Synth | null>(null)
   const rbRef = useRef<RapierRigidBody>(null)
   const playedCountRef = useRef(0)
+  const [exploded, setExploded] = useState(false)
 
   const initSynth = () => {
     if (!synthRef.current) {
@@ -29,15 +31,15 @@ export function Marble({ id, x, z, note, duration, color }: MarbleProps) {
   }
 
   useEffect(() => {
-    // Moderate initial push, let tilt do the rest
+    // Moderate initial push
     if (rbRef.current) {
       rbRef.current.applyImpulse({ x: 0, y: 0, z: 3 }, true)
     }
 
-    // Auto-destroy after 6 seconds to save performance
+    // Auto-destroy if it falls off or something, but the collision usually handles it now
     const timer = setTimeout(() => {
       useGameStore.getState().removeMarble(id)
-    }, 6000)
+    }, 8000)
 
     return () => {
       clearTimeout(timer)
@@ -46,28 +48,32 @@ export function Marble({ id, x, z, note, duration, color }: MarbleProps) {
   }, [id])
 
   const handleCollision = async (event: any) => {
-    if (playedCountRef.current < 1) {
-      // DEBUG: Let's see what is inside 'event' to find where userData is
-      // console.log('Collision Event details:', Object.keys(event), event.other?.userData)
+    if (playedCountRef.current < 1 && !exploded) {
+      const { playbackStartTime, effects } = useGameStore.getState()
       
-      const isTrack = event.other?.userData?.isTrack || event.colliderObject?.userData?.isTrack
-      
-      // If we don't find isTrack, we still play for now to diagnose
       if (Tone.context.state !== 'running') {
         await Tone.start()
       }
       
-      const { playbackStartTime } = useGameStore.getState()
       const offset = playbackStartTime > 0 ? Date.now() - playbackStartTime : 0
-      
       console.log(`[Sound Hit] Offset: ${offset}ms | Note: ${note} | Duration: ${duration}`)
       
       const synth = initSynth()
-      // Directly use musical notation ('4n', '8n', etc.)
       synth.triggerAttackRelease(note, duration)
       playedCountRef.current++
+      
+      if (effects.explosiveMarbles) {
+        // Trigger burst
+        setExploded(true)
+        
+        // Remove from store after effect finishes
+        setTimeout(() => {
+          useGameStore.getState().removeMarble(id)
+        }, 2000)
+      }
     }
   }
+
 
   return (
     <RigidBody
@@ -78,24 +84,28 @@ export function Marble({ id, x, z, note, duration, color }: MarbleProps) {
       friction={0.1}
       onCollisionEnter={handleCollision}
       userData={{ isMarble: true }}
-      // Collision Groups: Marble is group 2 (0x0002).
-      // It should collide with Track (group 1 -> 0x0001) 
-      // but NOT with other marbles.
-      // Format: 16-bit membership | 16-bit filter
-      // 0x0002 (group 2) | 0x0001 (mask for group 1 only) = 0x00020001
       collisionGroups={0x00020001}
+      // If exploded, we change the sensor property to true so it doesn't collide anymore
+      sensor={exploded}
     >
-      <mesh>
-        <sphereGeometry args={[0.3, 32, 32]} />
-        <meshStandardMaterial
-          color={color}
-          emissive={color}
-          emissiveIntensity={2}
-          metalness={0.7}
-          roughness={0.1}
-        />
-      </mesh>
-      <pointLight intensity={1.5} distance={5} color={color} />
+      {!exploded ? (
+        <>
+          <mesh>
+            <sphereGeometry args={[0.3, 32, 32]} />
+            <meshStandardMaterial
+              color={color}
+              emissive={color}
+              emissiveIntensity={2}
+              metalness={0.7}
+              roughness={0.1}
+            />
+          </mesh>
+          <pointLight intensity={1.5} distance={5} color={color} />
+        </>
+      ) : (
+        <BurstEffect color={color} />
+      )}
     </RigidBody>
   )
 }
+
