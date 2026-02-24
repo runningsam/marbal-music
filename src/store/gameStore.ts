@@ -78,13 +78,23 @@ export const useGameStore = create<GameState>((set, get) => ({
   },
 
   addMarble: (x: number, z: number, duration: string = '4n') => {
-    // Find the track closest to the click position to determine the note
     const tracks = get().tracks
-    const sortedTracks = [...tracks].sort((a, b) => Math.abs(a.x - x) - Math.abs(b.x - x))
-    const note = sortedTracks[0]?.note || 'C4'
+    // Find the track closest to the click position to determine the note
+    let closestTrack = tracks[0]
+    let minDistance = Infinity
     
-    const id = `marble-${Date.now()}`
+    tracks.forEach(track => {
+      const dist = Math.abs(track.x - x)
+      if (dist < minDistance) {
+        minDistance = dist
+        closestTrack = track
+      }
+    })
+
+    const note = closestTrack?.note || 'C4'
+    const id = `marble-${crypto.randomUUID()}`
     const paletteColor = MARBLE_PALETTE[Math.floor(Math.random() * MARBLE_PALETTE.length)]
+    
     set((state) => ({
       marbles: [...state.marbles, { id, x, z, note, duration, color: paletteColor }]
     }))
