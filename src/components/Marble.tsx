@@ -49,8 +49,15 @@ export function Marble({ id, x, z, note, duration, color }: MarbleProps) {
 
   const handleCollision = async () => {
     if (playedCountRef.current < 1 && !exploded) {
-      const { playbackStartTime, effects } = useGameStore.getState()
+      const { playbackStartTime, effects, tracks } = useGameStore.getState()
       
+      // Find the track by X position to trigger flash
+      const track = tracks.find(t => Math.abs(t.x - x) < 0.1)
+      if (track) {
+        const hitEvent = new CustomEvent('track-hit', { detail: { trackId: track.id } })
+        window.dispatchEvent(hitEvent)
+      }
+
       if (Tone.context.state !== 'running') {
         await Tone.start()
       }

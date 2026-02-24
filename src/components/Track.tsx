@@ -1,4 +1,6 @@
+import { useState, forwardRef, useImperativeHandle } from 'react'
 import { RigidBody } from '@react-three/rapier'
+import { useFrame } from '@react-three/fiber'
 
 
 interface TrackProps {
@@ -10,7 +12,26 @@ interface TrackProps {
   color: string
 }
 
-export function Track({ x, z, width, color }: TrackProps) {
+export interface TrackHitApi {
+  handleHit: () => void
+}
+
+export const Track = forwardRef<TrackHitApi, TrackProps>(({ x, z, width, color }, ref) => {
+
+  const [hitIntensity, setHitIntensity] = useState(0)
+
+  useImperativeHandle(ref, () => ({
+    handleHit: () => {
+      setHitIntensity(2.5) // Flash intensity
+    }
+  }))
+
+  useFrame((_state, delta) => {
+    if (hitIntensity > 0) {
+      setHitIntensity(prev => Math.max(0, prev - delta * 4)) // Fade out
+    }
+  })
+
   return (
     <group position={[x, -1, z]} rotation={[0.15, 0, 0]}>
       {/* Piano Key Body */}
@@ -26,7 +47,7 @@ export function Track({ x, z, width, color }: TrackProps) {
           <meshStandardMaterial
             color={color}
             emissive={color}
-            emissiveIntensity={0.2}
+            emissiveIntensity={0.2 + hitIntensity}
             metalness={0.8}
             roughness={0.2}
           />
@@ -46,4 +67,4 @@ export function Track({ x, z, width, color }: TrackProps) {
       </Text> */}
     </group>
   )
-}
+})

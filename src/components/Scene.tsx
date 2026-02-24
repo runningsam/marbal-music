@@ -1,15 +1,37 @@
 import { useFrame, useThree } from '@react-three/fiber'
 import { Stars } from '@react-three/drei'
 import * as THREE from 'three'
+import { useEffect, useMemo } from 'react'
 import { useGameStore } from '../store/gameStore'
 import { Marble } from './Marble'
-import { Track } from './Track'
+import { Track, TrackHitApi } from './Track'
 
 export function Scene() {
   const { camera } = useThree()
   const addMarble = useGameStore((state) => state.addMarble)
   const marbles = useGameStore((state) => state.marbles)
   const tracks = useGameStore((state) => state.tracks)
+
+  const trackRefs = useMemo(() => {
+    const map = new Map<string, React.RefObject<TrackHitApi>>()
+    tracks.forEach(track => {
+      map.set(track.id, { current: null })
+    })
+    return map
+  }, [tracks])
+
+  useEffect(() => {
+    const handleTrackHit = (e: any) => {
+      const { trackId } = e.detail
+      const trackRef = trackRefs.get(trackId)
+      if (trackRef?.current) {
+        trackRef.current.handleHit()
+      }
+    }
+
+    window.addEventListener('track-hit', handleTrackHit)
+    return () => window.removeEventListener('track-hit', handleTrackHit)
+  }, [trackRefs])
 
 
   useFrame(() => {
@@ -51,7 +73,11 @@ export function Scene() {
 
 
       {tracks.map((track) => (
-        <Track key={track.id} {...track} />
+        <Track 
+          key={track.id} 
+          ref={trackRefs.get(track.id)}
+          {...track} 
+        />
       ))}
 
       {marbles.map((marble) => (
